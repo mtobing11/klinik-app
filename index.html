@@ -5,6 +5,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.rawgit.com/Keyang/node-csvtojson/d41f44aa/browser/csvtojson.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;800&family=Roboto:wght@300&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
     <title>Klinik Kevin</title>
   </head>
@@ -14,7 +20,23 @@
         <h1>Klinik Kevin</h1>
         <p>Jl. Nusa Indah III No.257<br />Kelurahan Jaka Setya<br />Bekasi</p>
       </header>
-      <main id="main"></main>
+      <main id="main">
+        <form action="" method="post">
+          <input type="text" id="uname" name="nama" placeholder="nama" required />
+          <input type="text" id="unumber" name="telpon" placeholder="no HP" required />
+          <label for="tanggal">Tanggal kunjungan:</label>
+          <input type="date" id="tanggal" name="tanggal" required />
+
+          <label for="jam_datang">Pilih Jam kunjungan:</label><br />
+          <select name="jam_datang" id="jam_datang" required>
+            <option value="">-- Pilih Jam Kunjungan --</option>
+            <option value="session1">jam 10:00 s/d 12:00</option>
+            <option value="session2">jam 14:00 s/d 16:00</option>
+            <option value="session3">jam 18:00 s/d 20:00</option>
+            <input type="submit" value="Submit" />
+          </select>
+        </form>
+      </main>
     </div>
     <script src="script.css"></script>
   </body>
