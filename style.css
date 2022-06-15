@@ -1,0 +1,10 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#hero_section{
+    height: 100vh;
+    background: url(img/dental-bg-1024x683.jpg);
+}
