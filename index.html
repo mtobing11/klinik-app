@@ -21,7 +21,11 @@
         <p>Jl. Nusa Indah III No.257<br />Kelurahan Jaka Setya<br />Bekasi</p>
       </header>
       <main id="main">
-        <form action="" method="post">
+        <form
+          action="https://script.google.com/macros/s/AKfycbwi_bbKUEqGGGOzUb6AEjA4Tb4lwgAjPfWvJmHec57ZY7AscBaiV6P6yzshcY_ry2k9Dw/exec"
+          method="post"
+          id="booking-form"
+        >
           <input type="text" id="uname" name="nama" placeholder="nama" required />
           <input type="text" id="unumber" name="telpon" placeholder="no HP" required />
           <label for="tanggal">Tanggal kunjungan:</label>
@@ -30,10 +34,10 @@
           <label for="jam_datang">Pilih Jam kunjungan:</label><br />
           <select name="jam_datang" id="jam_datang" required>
             <option value="">-- Pilih Jam Kunjungan --</option>
-            <option value="session1">jam 10:00 s/d 12:00</option>
-            <option value="session2">jam 14:00 s/d 16:00</option>
-            <option value="session3">jam 18:00 s/d 20:00</option>
-            <input type="submit" value="Submit" />
+            <option value="session1" id="ses1">jam 10:00 s/d 12:00</option>
+            <option value="session2" id="ses2">jam 14:00 s/d 16:00</option>
+            <option value="session3" id="ses3">jam 18:00 s/d 20:00</option>
+            <input type="submit" value="Submit" id="submitBtn" />
           </select>
         </form>
         <div id="output"></div>
