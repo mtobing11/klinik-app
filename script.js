@@ -120,6 +120,12 @@ function checkAvailibility(data){
             e.preventDefault();
             this.value = '';
             alert('Sudah Fullbooked')
+
+            // const div = document.createElement('div');
+            // div.textContent = 'Sudah Fullbooked, pilih jam atau hari lain';
+            // div.classList.add('box');
+            // div.classList.add('danger');
+            // output.append(div);
         }
     })
 }
@@ -137,7 +143,7 @@ function checkAvailibility2(data){
     //     sessionChosenByCustomer = this.value;
     //     console.log(data);
     
-    //     let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer ? session2Capacity : session3Capacity;
+    //     // let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer ? session2Capacity : session3Capacity;
     //     let countSes1 = 0;
     //     let countSes2 = 0;
     //     let countSes3 = 0;
