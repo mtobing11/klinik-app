@@ -10,6 +10,7 @@
     --color-button: rgba(40, 167, 69, 0.9);
     --color-button-disabled: rgba(108, 117, 125, 0.3);
     --color-buttonhover: rgba(40, 167, 69, 1);
+    --color-footer: rgba(108, 117, 125, 0.7);
 }
 body {
     background-color: var(--color-background);
@@ -37,7 +38,7 @@ h1 {
     letter-spacing: 10px;
 }
 p{
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-family: 'Poppins', sans-serif;
 }
 #main{
@@ -90,12 +91,32 @@ input[type=submit]:hover {
     font-weight: normal;
 }
 
+/* footer */
+footer{
+    color: var(--color-footer);
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+footer h2{
+    font-family: 'Roboto', sans-serif;
+    font-size: 1rem;
+}
 /* media  */
 @media screen and (max-width: 1024px){
     h1{font-size:4rem}
     p{font-size:1.1rem}
 }
 
+@media screen and (max-width: 768px){
+    #hero_section {
+        background-position: bottom;
+    }
+}
+@media screen and (max-width: 766px){
+    #hero_section {
+        background-position: center;
+    }
+}
 @media screen and (max-width: 668px){
     #hero_section {
         border-bottom-right-radius: 120px;
@@ -112,6 +133,13 @@ input[type=submit]:hover {
 }
 
 @media screen and (max-width:376px){
+    #hero_section {
+        height: 100vh;
+        background: linear-gradient(0deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.3)), url(img/kevin_03.jpg);
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
     h1{font-size:2.4rem}
     p{font-size:0.8rem}
     input,

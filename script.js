@@ -106,6 +106,8 @@ window.addEventListener("load", function(){
             phoneInput.value = "";
             bookingDateInput.value = "";
             timeVisitInput.value = "";
+            disabledButton = false;
+            button.disabled = disabledButton;
         })
     })
 })
