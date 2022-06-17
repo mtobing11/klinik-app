@@ -7,13 +7,17 @@ const query3 = `&gid=559171219`;
 const endpoint1 = `${url}${ssid}${query1}${query2}`;
 const endpoint2 = `${url}${ssid}${query1}${query3}`;
 
+const nameInput = document.querySelector('#uname');
+const phoneInput = document.querySelector('#unumber');
 const bookingDateInput = document.querySelector('#tanggal');
 const timeVisitInput = document.querySelector('#jam_datang');
 const output = document.querySelector('#output');
+const button = document.querySelector('#submitBtn');
 
 let session1Capacity, session2Capacity, session3Capacity, sessionChosenByCustomer;
 let chosenDateByCustomer;
 let dayOff = [];
+let disabledButton = true;
 
 // memasukkan parameter
 fetch(endpoint1)
@@ -29,17 +33,9 @@ fetch(endpoint1)
         session3Capacity = Number(data[5].isi);
 
         setLimitBookingDate(limitBookingDate);
+        button.disabled = disabledButton;
     })
 
-// cek availability
-fetch(endpoint2)
-    .then(res => res.text())
-    .then(datajson => {
-        return csv().fromString(datajson)
-    })
-    .then(data => {
-        checkAvailibility(data);
-    })
 
 // Prototype Date for limit booking date
 Date.prototype.addDays = function(days){
@@ -79,6 +75,20 @@ bookingDateInput.addEventListener('input', function(e){
     chosenDateByCustomer = dateString;
 })
 
+// chose booking time, and then check availability
+timeVisitInput.addEventListener('input', function(e){
+    // before chose time to visit, make sure to choose date first
+    if(!chosenDateByCustomer){
+        e.preventDefault();
+        this.value = '';
+        return alert('Harap isi tanggal kunjungan');
+    }
+    sessionChosenByCustomer = this.value;
+    disabledButton = true;
+    button.disabled = disabledButton;
+    checkAvailibility(e);
+})
+
 // submit and intercept event so the user isn't redirected to webapp
 window.addEventListener("load", function(){
     const form = document.getElementById('booking-form');
@@ -91,68 +101,53 @@ window.addEventListener("load", function(){
             body: currData
         })
         .then(()=>{
-            alert("Success");
+            alert("Booking sudah berhasil");
+            nameInput.value = "";
+            phoneInput.value = "";
+            bookingDateInput.value = "";
+            timeVisitInput.value = "";
         })
     })
 })
 
 // Check Availibility
-function checkAvailibility(data){
-    // before chose time to visit, make sure to choose date first
+function checkAvailibility(e){
+    // take data from database
+    fetch(endpoint2)
+        .then(res => res.text())
+        .then(datajson => {
+            return csv().fromString(datajson)
+        })
+        .then(data => {
+            let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer ? session2Capacity : session3Capacity;
+            let count = 0;
+            let customerPhone = phoneInput.value; 
+            data.forEach(booking => {
+                if(booking.tanggal == chosenDateByCustomer && booking.jam_datang == sessionChosenByCustomer){
+                    count++;
+                    if(customerPhone == `0${booking.telpon}`){
+                        e.preventDefault();
+                        timeVisitInput.value = '';
+                        return alert('No Telpon ini sudah terdaftar di tanggal dan jam ini.')
+                    }
+                }
+            })
+            if(count >= sessionCapacity){
+                e.preventDefault();
+                timeVisitInput.value = '';
+                // console.log(`penuh, sudah terisi: ${count}`);
+                alert('Jam ini sudah penuh, coba pilih jam lain');
 
-    timeVisitInput.addEventListener('input', function(e){
-        if(!chosenDateByCustomer){
-            e.preventDefault();
-            this.value = '';
-            return alert('Harap isi tanggal kunjungan');
-        }
-        sessionChosenByCustomer = this.value;
-        console.log(data);
-    
-        let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer ? session2Capacity : session3Capacity;
-        let count = 0;
-        data.forEach(booking => {
-            if(booking.jam_datang == sessionChosenByCustomer){
-                count++;
+                // const div = document.createElement('div');
+                // div.textContent = 'Sudah Fullbooked, pilih jam atau hari lain';
+                // div.classList.add('box');
+                // div.classList.add('danger');
+                // output.append(div);
+            } else {
+                // console.log(`tidak penuh, baru ada: ${count}`);
+                disabledButton = false;
+                button.disabled = disabledButton;
             }
         })
-        if(count >= sessionCapacity){
-            e.preventDefault();
-            this.value = '';
-            alert('Sudah Fullbooked')
 
-            // const div = document.createElement('div');
-            // div.textContent = 'Sudah Fullbooked, pilih jam atau hari lain';
-            // div.classList.add('box');
-            // div.classList.add('danger');
-            // output.append(div);
-        }
-    })
-}
-
-// Check Availibility 2
-function checkAvailibility2(data){
-    // before chose time to visit, make sure to choose date first
-
-    // timeVisitInput.addEventListener('input', function(e){
-    //     if(!chosenDateByCustomer){
-    //         e.preventDefault();
-    //         this.value = '';
-    //         return alert('Harap isi tanggal kunjungan');
-    //     }
-    //     sessionChosenByCustomer = this.value;
-    //     console.log(data);
-    
-    //     // let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer ? session2Capacity : session3Capacity;
-    //     let countSes1 = 0;
-    //     let countSes2 = 0;
-    //     let countSes3 = 0;
-    //     data.forEach(booking => {
-    //         booking.jam_datang == 'session1' ? countSes1++ : booking.jam_datang == 'session2' ? countSes2++ : booking.jam_datang == 'session3' ? countSes3++ : null
-    //     })
-    //     if(countSes1 >= session1Capacity){
-    //         let optionSes = document.querySelector('#ses1');
-    //         optionSes.innerText = "Fullbooked";
-    //     }
-    // })
 }
