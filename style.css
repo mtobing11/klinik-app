@@ -15,7 +15,7 @@ body {
 
 #hero_section{
     height: 100vh;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.5)), url(img/dental-bg-1024x683.jpg);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.3)), url(img/kevin_02.jpg);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -32,6 +32,7 @@ body {
 h1 {
     font-size: 5rem;
     font-family: 'Roboto', sans-serif;
+    letter-spacing: 10px;
 }
 p{
     font-size: 1.5rem;
@@ -94,13 +95,17 @@ input[type=submit]:hover {
 /* media  */
 @media screen and (max-width: 1024px){
     h1{font-size:4rem}
-    p{font-size:1.4rem}
+    p{font-size:1.1rem}
 }
 
 @media screen and (max-width: 668px){
+    #hero_section {
+        border-bottom-right-radius: 120px;
+        border-bottom-left-radius: 120px;
+    }
     #header {padding-top: 15vh}
-    h1{font-size:3rem}
-    p{font-size:1.1rem}
+    h1{font-size:2.6rem}
+    p{font-size:0.9rem}
     input, select {font-size:1.3rem}
     input[type=submit]{
         font-size: 1.5rem;
@@ -109,7 +114,8 @@ input[type=submit]:hover {
 }
 
 @media screen and (max-width:376px){
-    p{font-size:1rem}
+    h1{font-size:2.4rem}
+    p{font-size:0.8rem}
     input,
     select {
         font-size: 1.1rem
