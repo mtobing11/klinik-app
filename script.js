@@ -17,24 +17,38 @@ const button = document.querySelector('#submitBtn');
 let session1Capacity, session2Capacity, session3Capacity, sessionChosenByCustomer;
 let chosenDateByCustomer;
 let dayOff = [];
+let maxDayLimit = 1;
 let disabledButton = true;
+let todayOpen = true;
 
 // memasukkan parameter
-fetch(endpoint1)
-    .then(res => res.text())
-    .then(datajson => {
-        return csv().fromString(datajson)
-    })
-    .then(data => {
-        let limitBookingDate = Number(data[0].isi);
-        dayOff.push(Number(data[1].isi));
-        session1Capacity = Number(data[3].isi);
-        session2Capacity = Number(data[4].isi);
-        session3Capacity = Number(data[5].isi);
+function parameterInput(){
+    fetch(endpoint1)
+        .then(res => res.text())
+        .then(datajson => {
+            return csv().fromString(datajson)
+        })
+        .then(data => {
+            maxDayLimit = Number(data[0].value);
+            dayOff.push(data[1].value);
+            session1Capacity = Number(data[3].value);
+            session2Capacity = Number(data[4].value);
+            session3Capacity = Number(data[5].value);
+            console.log(data);
+            button.disabled = disabledButton;
 
-        setLimitBookingDate(limitBookingDate);
-        button.disabled = disabledButton;
-    })
+            if(data[6].value == 'N' || data[6].value == 'n'){
+                todayOpen = false;
+            } else {
+                todayOpen = true;
+            }
+        })
+        .then(() =>{
+            setLimitBookingDate(maxDayLimit);
+        })
+}
+
+parameterInput();
 
 
 // Prototype Date for limit booking date
@@ -46,34 +60,24 @@ Date.prototype.addDays = function(days){
 // limit max booking date
 function setLimitBookingDate(limit){
     let today = new Date();
-    let maxDay = new Date();
+    let maxDay = today.addDays(limit);
 
-    maxDay = maxDay.addDays(limit);
-    bookingDateInput.min = today.toISOString().substring(0, 10);
-    bookingDateInput.max = maxDay.toISOString().substring(0, 10);
+    settingCalendar(maxDay);
 }
 
 // disabled offDate
-bookingDateInput.addEventListener('input', function(e){
-    let dateString = this.value;
-    let indexChosenDay = new Date(dateString).getUTCDay();
-    let chosenDateUTC = new Date(dateString).getUTCDate();
-    
-    // disable weekend
-    if([6,0].includes(indexChosenDay)){
-        e.preventDefault();
-        this.value = '';
-        return lert("Sabtu-Minggu kami tutup");
-    }
+// bookingDateInput.addEventListener('input', function(e){
+//     let dateString = this.value;
+//     let chosenDateUTC = new Date(dateString).getUTCDate();
 
-    // disable holiday
-    if(dayOff.includes(chosenDateUTC)){
-        e.preventDefault();
-        this.value = '';
-        return alert(`Tanggal ${dayOff} kami libur`);
-    }
-    chosenDateByCustomer = dateString;
-})
+//     // disable holiday
+//     if(dayOff.includes(chosenDateUTC)){
+//         e.preventDefault();
+//         this.value = '';
+//         return alert(`Tanggal ${dayOff} kami libur`);
+//     }
+//     chosenDateByCustomer = dateString;
+// })
 
 // chose booking time, and then check availability
 timeVisitInput.addEventListener('input', function(e){
@@ -146,10 +150,58 @@ function checkAvailibility(e){
                 // div.classList.add('danger');
                 // output.append(div);
             } else {
-                // console.log(`tidak penuh, baru ada: ${count}`);
                 disabledButton = false;
                 button.disabled = disabledButton;
             }
         })
 
+}
+
+function settingCalendar(max){
+    let maxDay = max.toISOString().substring(0, 10);
+    let holiday = [];
+
+    dayOff.forEach(day=>{
+        let newFormatDate = formatDate(day)
+        holiday.push(newFormatDate);
+    })
+
+    // change format from mm/dd/yyyy to yyyy/mm/dd
+    function formatDate(date) {
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+        if (month.length < 2) 
+            month = '0' + month;
+        if (day.length < 2) 
+            day = '0' + day;
+
+        return [year, month, day].join('-');
+    }
+
+    // flatpickr for date input
+    calendarConfig = {
+        enableTime: false,
+        altInput: true,
+        altFormat: "F j, Y",
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        maxDate: maxDay,
+        "disable": [
+            function(date) {
+                // return true to disable
+                return (date.getDay() === 0 || date.getDay() === 1 || date.getDay() === 6);
+            }, 
+            holiday[0],
+            function(date) {
+                if(!todayOpen){
+                    let newDay = new Date()
+                    return date.getDay() === newDay.getDay();
+                }
+            }
+        ]
+    }
+    flatpickr("input[type=date]", calendarConfig)
 }

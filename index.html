@@ -3,14 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- refresh page every 60s -->
+    <meta http-equiv="refresh" content="60" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- csvtojson easy read json -->
     <script src="https://cdn.rawgit.com/Keyang/node-csvtojson/d41f44aa/browser/csvtojson.min.js"></script>
+    <!-- google font  -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;800&family=Roboto:wght@300&display=swap"
       rel="stylesheet"
     />
+    <!-- flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <!-- font awesome -->
+    <!-- <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    /> -->
+    <script src="https://kit.fontawesome.com/4634420751.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="style.css" />
     <title>Klinik Kevin</title>
   </head>
@@ -29,7 +44,7 @@
           <input type="text" id="uname" name="nama" placeholder="nama" required />
           <input type="text" id="unumber" name="telpon" placeholder="no HP" required />
           <label for="tanggal">Tanggal kunjungan:</label>
-          <input type="date" id="tanggal" name="tanggal" required />
+          <input type="date" id="tanggal" name="tanggal" placeholder="tanggal" required />
 
           <label for="jam_datang">Pilih jam kunjungan:</label><br />
           <select name="jam_datang" id="jam_datang" required>
@@ -40,10 +55,22 @@
             <input type="submit" value="Submit" id="submitBtn" />
           </select>
         </form>
+        <div id="chat">
+          <div class="icon">
+            <a
+              href="https://api.whatsapp.com/send?phone=6281210473454&amp;text=Halo%20Terapi%20Ketok%20Mr.Kevin%20"
+              target="_blank"
+              ><i class="fab fa-whatsapp"></i
+            ></a>
+          </div>
+        </div>
         <footer><h2>design by digitalmartinhouse.com</h2></footer>
         <!-- <div id="output"></div> -->
       </main>
     </div>
+    <!-- script flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- our script -->
     <script src="script.js"></script>
   </body>
 </html>
