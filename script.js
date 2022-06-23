@@ -13,6 +13,7 @@ const bookingDateInput = document.querySelector('#tanggal');
 const timeVisitInput = document.querySelector('#jam_datang');
 const output = document.querySelector('#output');
 const button = document.querySelector('#submitBtn');
+const timestamp = document.querySelector('#timestamp');
 
 let session1Capacity, session2Capacity, session3Capacity, sessionChosenByCustomer;
 let chosenDateByCustomer;
@@ -34,7 +35,7 @@ function parameterInput(){
             session1Capacity = Number(data[3].value);
             session2Capacity = Number(data[4].value);
             session3Capacity = Number(data[5].value);
-            console.log(data);
+            // console.log(data);
             button.disabled = disabledButton;
 
             if(data[6].value == 'N' || data[6].value == 'n'){
@@ -65,19 +66,19 @@ function setLimitBookingDate(limit){
     settingCalendar(maxDay);
 }
 
-// disabled offDate
-// bookingDateInput.addEventListener('input', function(e){
-//     let dateString = this.value;
-//     let chosenDateUTC = new Date(dateString).getUTCDate();
+// chosen date by customer
+bookingDateInput.addEventListener('input', function(e){
+    let dateString = this.value;
+    // let chosenDateUTC = new Date(dateString).getUTCDate();
 
-//     // disable holiday
-//     if(dayOff.includes(chosenDateUTC)){
-//         e.preventDefault();
-//         this.value = '';
-//         return alert(`Tanggal ${dayOff} kami libur`);
-//     }
-//     chosenDateByCustomer = dateString;
-// })
+    // // disable holiday
+    // if(dayOff.includes(chosenDateUTC)){
+    //     e.preventDefault();
+    //     this.value = '';
+    //     return alert(`Tanggal ${dayOff} kami libur`);
+    // }
+    chosenDateByCustomer = dateString;
+})
 
 // chose booking time, and then check availability
 timeVisitInput.addEventListener('input', function(e){
@@ -87,6 +88,7 @@ timeVisitInput.addEventListener('input', function(e){
         this.value = '';
         return alert('Harap isi tanggal kunjungan');
     }
+    timestamp.value = new Date();
     sessionChosenByCustomer = this.value;
     disabledButton = true;
     button.disabled = disabledButton;
@@ -111,6 +113,7 @@ window.addEventListener("load", function(){
             bookingDateInput.value = "";
             timeVisitInput.value = "";
             disabledButton = false;
+            chosenDateByCustomer = "";
             button.disabled = disabledButton;
         })
     })
