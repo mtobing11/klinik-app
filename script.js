@@ -3,9 +3,11 @@ const ssid = '1fJV7cnNu4Lb_jqKzR15UwZqWE3VbvRoxe7qVDanE9AI';
 const query1 = `/export?format=csv`;
 const query2 = `&gid=761020186`;
 const query3 = `&gid=559171219`;
+const query4 = `&gid=117909431`;
 
 const endpoint1 = `${url}${ssid}${query1}${query2}`;
 const endpoint2 = `${url}${ssid}${query1}${query3}`;
+const endpoint3 = `${url}${ssid}${query1}${query4}`;
 
 const nameInput = document.querySelector('#uname');
 const phoneInput = document.querySelector('#unumber');
@@ -21,6 +23,8 @@ let dayOff = [];
 let maxDayLimit = 1;
 let disabledButton = true;
 let todayOpen = true;
+let dataCountBooking;
+let dataInChosenDate;
 
 // memasukkan parameter
 function parameterInput(){
@@ -36,7 +40,7 @@ function parameterInput(){
             session2Capacity = Number(data[4].value);
             session3Capacity = Number(data[5].value);
             // console.log(data);
-            button.disabled = disabledButton;
+            // button.disabled = disabledButton;
 
             if(data[6].value == 'N' || data[6].value == 'n'){
                 todayOpen = false;
@@ -49,8 +53,19 @@ function parameterInput(){
         })
 }
 
-parameterInput();
+function getAlreadyBookedData(){
 
+    fetch(endpoint3)
+    .then(res => res.text())
+    .then(datajson => csv().fromString(datajson))
+    .then(data => {
+        dataCountBooking = data;
+        console.log(dataCountBooking);
+    })
+}
+
+parameterInput();
+getAlreadyBookedData();
 
 // Prototype Date for limit booking date
 Date.prototype.addDays = function(days){
@@ -68,6 +83,7 @@ function setLimitBookingDate(limit){
 
 // chosen date by customer
 bookingDateInput.addEventListener('input', function(e){
+    timeVisitInput.value = "";
     let dateString = this.value;
     // let chosenDateUTC = new Date(dateString).getUTCDate();
 
@@ -78,21 +94,29 @@ bookingDateInput.addEventListener('input', function(e){
     //     return alert(`Tanggal ${dayOff} kami libur`);
     // }
     chosenDateByCustomer = dateString;
+    
+    dataCountBooking.forEach(field => {
+        if(chosenDateByCustomer == field.field1){
+            dataInChosenDate = field;
+        }
+    })
+    console.log("data in chosen date:",dataInChosenDate);
 })
 
 // chose booking time, and then check availability
 timeVisitInput.addEventListener('input', function(e){
     // before chose time to visit, make sure to choose date first
-    if(!chosenDateByCustomer){
+    if(!chosenDateByCustomer || !dataInChosenDate){
         e.preventDefault();
         this.value = '';
         return alert('Harap isi tanggal kunjungan');
     }
     timestamp.value = new Date();
     sessionChosenByCustomer = this.value;
-    disabledButton = true;
-    button.disabled = disabledButton;
-    checkAvailibility(e);
+    // disabledButton = true;
+    // button.disabled = disabledButton;
+
+    checkAvailibility2(e);
 })
 
 // submit and intercept event so the user isn't redirected to webapp
@@ -100,6 +124,10 @@ window.addEventListener("load", function(){
     const form = document.getElementById('booking-form');
     form.addEventListener('submit', function(e){
         e.preventDefault();
+
+        button.setAttribute('disabled', 'disabled');
+        button.value = 'Harap tunggu...';
+
         const currData = new FormData(form);
         const action = e.target.action;
         fetch(action, {
@@ -112,52 +140,34 @@ window.addEventListener("load", function(){
             phoneInput.value = "";
             bookingDateInput.value = "";
             timeVisitInput.value = "";
-            disabledButton = false;
+            // disabledButton = false;
             chosenDateByCustomer = "";
-            button.disabled = disabledButton;
+            DataCountBooking = "";
+            dataInChosenDate = "";
+
+            // button.disabled = disabledButton;
+        })
+        .then(()=>{
+            button.removeAttribute('disabled');
+            button.value = 'Submit';
         })
     })
 })
 
-// Check Availibility
-function checkAvailibility(e){
-    // take data from database
-    fetch(endpoint2)
-        .then(res => res.text())
-        .then(datajson => {
-            return csv().fromString(datajson)
-        })
-        .then(data => {
-            let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer ? session2Capacity : session3Capacity;
-            let count = 0;
-            let customerPhone = phoneInput.value; 
-            data.forEach(booking => {
-                if(booking.tanggal == chosenDateByCustomer && booking.jam_datang == sessionChosenByCustomer){
-                    count++;
-                    if(customerPhone == `0${booking.telpon}`){
-                        e.preventDefault();
-                        timeVisitInput.value = '';
-                        return alert('No Telpon ini sudah terdaftar di tanggal dan jam ini.')
-                    }
-                }
-            })
-            if(count >= sessionCapacity){
-                e.preventDefault();
-                timeVisitInput.value = '';
-                // console.log(`penuh, sudah terisi: ${count}`);
-                alert('Jam ini sudah penuh, coba pilih jam lain');
+// Check Availibility too
+function checkAvailibility2(e){
+    let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer == 'session2' ? session2Capacity : session3Capacity;
+    let alreadyTaken = sessionChosenByCustomer == 'session1' ? dataInChosenDate.field2 : sessionChosenByCustomer == 'session2' ? dataInChosenDate.field3 : dataInChosenDate.field4;
 
-                // const div = document.createElement('div');
-                // div.textContent = 'Sudah Fullbooked, pilih jam atau hari lain';
-                // div.classList.add('box');
-                // div.classList.add('danger');
-                // output.append(div);
-            } else {
-                disabledButton = false;
-                button.disabled = disabledButton;
-            }
-        })
+    console.log("Kapasitas:", sessionCapacity)
+    console.log(sessionChosenByCustomer, "sudah terisi:", alreadyTaken);
+    console.log("data:", dataInChosenDate);
 
+    if (alreadyTaken >= sessionCapacity){
+        e.preventDefault();
+        timeVisitInput.value = '';
+        return alert('Jam ini sudah penuh, coba pilih jam lain');
+    }
 }
 
 function settingCalendar(max){
@@ -207,4 +217,46 @@ function settingCalendar(max){
         ]
     }
     flatpickr("input[type=date]", calendarConfig)
+}
+
+
+// Check Availibility
+function checkAvailibility(e){
+    // take data from database
+    fetch(endpoint2)
+        .then(res => res.text())
+        .then(datajson => {
+            return csv().fromString(datajson)
+        })
+        .then(data => {
+            let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer ? session2Capacity : session3Capacity;
+            let count = 0;
+            let customerPhone = phoneInput.value; 
+            data.forEach(booking => {
+                if(booking.tanggal == chosenDateByCustomer && booking.jam_datang == sessionChosenByCustomer){
+                    count++;
+                    if(customerPhone == `0${booking.telpon}`){
+                        e.preventDefault();
+                        timeVisitInput.value = '';
+                        return alert('No Telpon ini sudah terdaftar di tanggal dan jam ini.')
+                    }
+                }
+            })
+            if(count >= sessionCapacity){
+                e.preventDefault();
+                timeVisitInput.value = '';
+                // console.log(`penuh, sudah terisi: ${count}`);
+                alert('Jam ini sudah penuh, coba pilih jam lain');
+
+                // const div = document.createElement('div');
+                // div.textContent = 'Sudah Fullbooked, pilih jam atau hari lain';
+                // div.classList.add('box');
+                // div.classList.add('danger');
+                // output.append(div);
+            } else {
+                disabledButton = false;
+                button.disabled = disabledButton;
+            }
+        })
+
 }
