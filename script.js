@@ -4,10 +4,12 @@ const query1 = `/export?format=csv`;
 const query2 = `&gid=761020186`;
 const query3 = `&gid=559171219`;
 const query4 = `&gid=117909431`;
+const query5 = `&gid=96457177`;
 
 const endpoint1 = `${url}${ssid}${query1}${query2}`;
 const endpoint2 = `${url}${ssid}${query1}${query3}`;
 const endpoint3 = `${url}${ssid}${query1}${query4}`;
+const endpoint4 = `${url}${ssid}${query1}${query5}`;
 
 const nameInput = document.querySelector('#uname');
 const phoneInput = document.querySelector('#unumber');
@@ -16,6 +18,8 @@ const timeVisitInput = document.querySelector('#jam_datang');
 const output = document.querySelector('#output');
 const button = document.querySelector('#submitBtn');
 const timestamp = document.querySelector('#timestamp');
+const title = document.querySelector('#title');
+const chatWhatsApp = document.querySelector('#chat');
 
 let session1Capacity, session2Capacity, session3Capacity, sessionChosenByCustomer;
 let chosenDateByCustomer;
@@ -25,6 +29,7 @@ let disabledButton = true;
 let todayOpen = true;
 let dataCountBooking;
 let dataInChosenDate;
+let notRegistered = true;
 
 // memasukkan parameter
 function parameterInput(){
@@ -39,7 +44,6 @@ function parameterInput(){
             session1Capacity = Number(data[3].value);
             session2Capacity = Number(data[4].value);
             session3Capacity = Number(data[5].value);
-            // console.log(data);
             // button.disabled = disabledButton;
 
             if(data[6].value == 'N' || data[6].value == 'n'){
@@ -60,7 +64,6 @@ function getAlreadyBookedData(){
     .then(datajson => csv().fromString(datajson))
     .then(data => {
         dataCountBooking = data;
-        console.log(dataCountBooking);
     })
 }
 
@@ -85,14 +88,7 @@ function setLimitBookingDate(limit){
 bookingDateInput.addEventListener('input', function(e){
     timeVisitInput.value = "";
     let dateString = this.value;
-    // let chosenDateUTC = new Date(dateString).getUTCDate();
-
-    // // disable holiday
-    // if(dayOff.includes(chosenDateUTC)){
-    //     e.preventDefault();
-    //     this.value = '';
-    //     return alert(`Tanggal ${dayOff} kami libur`);
-    // }
+    
     chosenDateByCustomer = dateString;
     
     dataCountBooking.forEach(field => {
@@ -100,7 +96,7 @@ bookingDateInput.addEventListener('input', function(e){
             dataInChosenDate = field;
         }
     })
-    console.log("data in chosen date:",dataInChosenDate);
+    // console.log("data in chosen date:",dataInChosenDate);
 })
 
 // chose booking time, and then check availability
@@ -122,46 +118,100 @@ timeVisitInput.addEventListener('input', function(e){
 // submit and intercept event so the user isn't redirected to webapp
 window.addEventListener("load", function(){
     const form = document.getElementById('booking-form');
+    let action;
     form.addEventListener('submit', function(e){
         e.preventDefault();
 
         button.setAttribute('disabled', 'disabled');
         button.value = 'Harap tunggu...';
 
-        const currData = new FormData(form);
-        const action = e.target.action;
-        fetch(action, {
-            method: 'POST',
-            body: currData
-        })
-        .then(()=>{
-            alert("Booking sudah berhasil");
-            nameInput.value = "";
-            phoneInput.value = "";
-            bookingDateInput.value = "";
-            timeVisitInput.value = "";
-            // disabledButton = false;
-            chosenDateByCustomer = "";
-            DataCountBooking = "";
-            dataInChosenDate = "";
+        let checkPhone = phoneIndonesianValidator(phoneInput.value);
+        let arrayPhone;
 
-            // button.disabled = disabledButton;
-        })
-        .then(()=>{
+        if(!checkPhone){
+            phoneInput.value = "";
             button.removeAttribute('disabled');
             button.value = 'Submit';
+            return alert("Nomor Handphone salah atau Provider tidak dikenal");
+        }
+        const currData = new FormData(form);
+        const action = e.target.action;
+        let newPhone = standardizedPhoneNumber(phoneInput.value)
+        // console.log("new phone:", newPhone);
+        phoneInput.value = newPhone
+
+
+        fetch(endpoint4)
+        .then(res => res.text())
+        .then(datajson => csv().fromString(datajson))
+        .then(data => {
+            for (let i = 0; i < data.length; i++){
+                let arr = data[i].handphone.split(",");
+                
+                for (let j = 0; j < arr.length; j++){
+                    // console.log(arr[j], newPhone.slice(1))
+                    if(arr[j] == newPhone.slice(1)){
+                        // console.log('double:', arr[j], newPhone)
+                        return notRegistered = false
+                    } 
+                }
+                notRegistered = true
+            }
+            
         })
+        .then(() => {
+            if(notRegistered){
+                bookingProcess();
+            } else {
+                phoneInput.value = "";
+                button.removeAttribute('disabled');
+                button.value = 'Submit';
+                return alert("Maaf Nomer anda sudah terdaftar, silahkan gunakan no HP lain");
+            }
+        })
+
+        // if(!checkDoublePhone(newPhone)){
+        //     phoneInput.value = "";
+        //     button.removeAttribute('disabled');
+        //     button.value = 'Submit';
+        //     return alert("Maaf Nomer anda sudah terdaftar, silahkan gunakan no HP lain");
+        // }
+
+        function bookingProcess(){
+            fetch(action, {
+                method: 'POST',
+                body: currData
+            })
+            .then(()=>{
+                alert("Booking sudah berhasil");
+                nameInput.value = "";
+                phoneInput.value = "";
+                bookingDateInput.value = "";
+                timeVisitInput.value = "";
+                // disabledButton = false;
+                chosenDateByCustomer = "";
+                DataCountBooking = "";
+                dataInChosenDate = "";
+    
+                // button.disabled = disabledButton;
+            })
+            .then(()=>{
+                button.removeAttribute('disabled');
+                button.value = 'Submit';
+            })
+        }
     })
 })
+
 
 // Check Availibility too
 function checkAvailibility2(e){
     let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer == 'session2' ? session2Capacity : session3Capacity;
     let alreadyTaken = sessionChosenByCustomer == 'session1' ? dataInChosenDate.field2 : sessionChosenByCustomer == 'session2' ? dataInChosenDate.field3 : dataInChosenDate.field4;
 
-    console.log("Kapasitas:", sessionCapacity)
-    console.log(sessionChosenByCustomer, "sudah terisi:", alreadyTaken);
-    console.log("data:", dataInChosenDate);
+    // console.log("Kapasitas:", sessionCapacity)
+    // console.log(sessionChosenByCustomer, "sudah terisi:", alreadyTaken);
+    // console.log("data:", dataInChosenDate);
 
     if (alreadyTaken >= sessionCapacity){
         e.preventDefault();
@@ -219,44 +269,136 @@ function settingCalendar(max){
     flatpickr("input[type=date]", calendarConfig)
 }
 
-
-// Check Availibility
-function checkAvailibility(e){
-    // take data from database
-    fetch(endpoint2)
-        .then(res => res.text())
-        .then(datajson => {
-            return csv().fromString(datajson)
-        })
-        .then(data => {
-            let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer ? session2Capacity : session3Capacity;
-            let count = 0;
-            let customerPhone = phoneInput.value; 
-            data.forEach(booking => {
-                if(booking.tanggal == chosenDateByCustomer && booking.jam_datang == sessionChosenByCustomer){
-                    count++;
-                    if(customerPhone == `0${booking.telpon}`){
-                        e.preventDefault();
-                        timeVisitInput.value = '';
-                        return alert('No Telpon ini sudah terdaftar di tanggal dan jam ini.')
-                    }
-                }
-            })
-            if(count >= sessionCapacity){
-                e.preventDefault();
-                timeVisitInput.value = '';
-                // console.log(`penuh, sudah terisi: ${count}`);
-                alert('Jam ini sudah penuh, coba pilih jam lain');
-
-                // const div = document.createElement('div');
-                // div.textContent = 'Sudah Fullbooked, pilih jam atau hari lain';
-                // div.classList.add('box');
-                // div.classList.add('danger');
-                // output.append(div);
-            } else {
-                disabledButton = false;
-                button.disabled = disabledButton;
-            }
-        })
-
+// change title in small screen
+if (window.innerWidth < 1024){
+    title.innerText = 'Terapi Ketok ' + 'Mr.Kevin';
 }
+
+if (window.innerWidth > 768){
+    let position = adjustChatPosition()
+    // console.log("position", position)
+    chat.style.left = `${position}px`;
+}
+
+function adjustChatPosition(){
+    let widthScreen = window.innerWidth;
+    let positionX = (widthScreen / 2) + (500/2) + 20;
+    // console.log(positionX);
+    return positionX
+}
+
+
+
+// check Indonesian phone number
+function phoneIndonesianValidator(phone){
+    let formattedPhoneNumber = standardizedPhoneNumber(phone);
+
+    return testingPhoneNumber(formattedPhoneNumber) && !!cellularProviderInIndonesia(formattedPhoneNumber);
+}
+
+function standardizedPhoneNumber(phone){
+    let phoneNumber = String(phone).trim();
+
+    if(phoneNumber.startsWith('+62')){
+        phoneNumber = '0' + phoneNumber.slice(3);
+    } else if (phoneNumber.startsWith('62')){
+        phoneNumber = '0' + phoneNumber.slice(2)
+    }
+
+    return phoneNumber.replace(/[- .]/g, "");
+}
+
+function testingPhoneNumber(phone){
+    if(!phone || !/^08[1-9][0-9]{7,10}$/.test(phone)){
+        return false
+    }
+    return true
+}
+
+function cellularProviderInIndonesia(phone){
+    const prefix = phone.slice(0, 4);
+    if (['0831', '0832', '0833', '0838'].includes(prefix)) return 'axis';
+    if (['0895', '0896', '0897', '0898', '0899'].includes(prefix)) return 'three';
+    if (['0817', '0818', '0819', '0859', '0878', '0877'].includes(prefix)) return 'xl';
+    if (['0814', '0815', '0816', '0855', '0856', '0857', '0858'].includes(prefix)) return 'indosat';
+    if (['0812', '0813', '0852', '0853', '0821', '0823', '0822', '0851', '0811'].includes(prefix)) return 'telkomsel';
+    if (['0881', '0882', '0883', '0884', '0885', '0886', '0887', '0888', '0889'].includes(prefix)) return 'smartfren';
+    return null;
+}
+
+// check apakah HP sudah terdaftar
+function checkDoublePhone(phone){
+    fetch(endpoint4)
+    .then(res => res.text())
+    .then(datajson => csv().fromString(datajson))
+    .then(data => {
+        for (let i = 0; i < data.length; i++){
+            // console.log(typeof data[i].handphone)
+            let arr = data[i].handphone.split(",");
+            
+            for (let j = 0; j < arr.length; j++){
+                if(arr[j] == phone){
+                    console.log(arr[j], phone)
+                    return false
+                }
+            }
+        }
+        return true
+    })
+}
+
+
+
+// // Check Availibility
+// function checkAvailibility(e){
+//     // take data from database
+//     fetch(endpoint2)
+//         .then(res => res.text())
+//         .then(datajson => {
+//             return csv().fromString(datajson)
+//         })
+//         .then(data => {
+//             let sessionCapacity = sessionChosenByCustomer == 'session1' ? session1Capacity : sessionChosenByCustomer ? session2Capacity : session3Capacity;
+//             let count = 0;
+//             let customerPhone = phoneInput.value; 
+//             data.forEach(booking => {
+//                 if(booking.tanggal == chosenDateByCustomer && booking.jam_datang == sessionChosenByCustomer){
+//                     count++;
+//                     if(customerPhone == `0${booking.telpon}`){
+//                         e.preventDefault();
+//                         timeVisitInput.value = '';
+//                         return alert('No Telpon ini sudah terdaftar di tanggal dan jam ini.')
+//                     }
+//                 }
+//             })
+//             if(count >= sessionCapacity){
+//                 e.preventDefault();
+//                 timeVisitInput.value = '';
+//                 // console.log(`penuh, sudah terisi: ${count}`);
+//                 alert('Jam ini sudah penuh, coba pilih jam lain');
+
+//                 // const div = document.createElement('div');
+//                 // div.textContent = 'Sudah Fullbooked, pilih jam atau hari lain';
+//                 // div.classList.add('box');
+//                 // div.classList.add('danger');
+//                 // output.append(div);
+//             } else {
+//                 disabledButton = false;
+//                 button.disabled = disabledButton;
+//             }
+//         })
+
+// }
+
+// chat event
+// chatWhatsApp.addEventListener("click", (e)=>{
+//     let number = '6281210473454';
+//     let messages = 'Halo Terapi ketok Kevin,';
+//     getLinkWhatsApp(number, messages)
+// })
+
+// function getLinkWhatsApp(number, message){
+//     let messages = message.split(' ').join('%20');
+
+//     return console.log('https://api.whatsapp.com/send?phone=' + number + '&amp;text=' + encodeURIComponent(messages))
+// }
