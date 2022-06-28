@@ -20,6 +20,8 @@ const button = document.querySelector('#submitBtn');
 const timestamp = document.querySelector('#timestamp');
 const title = document.querySelector('#title');
 const chatWhatsApp = document.querySelector('#chat');
+const announcementBox = document.querySelector('#announcement-box') ;
+const countDown = document.querySelector('#countdown') ;
 
 let session1Capacity, session2Capacity, session3Capacity, sessionChosenByCustomer;
 let chosenDateByCustomer;
@@ -27,9 +29,12 @@ let dayOff = [];
 let maxDayLimit = 1;
 let disabledButton = true;
 let todayOpen = true;
+let notRegistered = true;
+let announcement = false;
+let announcementText;
+let countdownDestination;
 let dataCountBooking;
 let dataInChosenDate;
-let notRegistered = true;
 
 // memasukkan parameter
 function parameterInput(){
@@ -44,12 +49,21 @@ function parameterInput(){
             session1Capacity = Number(data[3].value);
             session2Capacity = Number(data[4].value);
             session3Capacity = Number(data[5].value);
+            
             // button.disabled = disabledButton;
-
+            // console.log(data);
             if(data[6].value == 'N' || data[6].value == 'n'){
                 todayOpen = false;
             } else {
                 todayOpen = true;
+            }
+
+            if(data[7].value == "y" || data[7].value == 'Y'){
+                announcement = true;
+                announcementText = data[8].value;
+                countdownDestination = data[9].value;
+                
+                countDownTimer();
             }
         })
         .then(() =>{
@@ -126,7 +140,6 @@ window.addEventListener("load", function(){
         button.value = 'Harap tunggu...';
 
         let checkPhone = phoneIndonesianValidator(phoneInput.value);
-        let arrayPhone;
 
         if(!checkPhone){
             phoneInput.value = "";
@@ -134,30 +147,32 @@ window.addEventListener("load", function(){
             button.value = 'Submit';
             return alert("Nomor Handphone salah atau Provider tidak dikenal");
         }
-        const currData = new FormData(form);
+        
         const action = e.target.action;
+        let currData;
         let newPhone = standardizedPhoneNumber(phoneInput.value)
         // console.log("new phone:", newPhone);
-        phoneInput.value = newPhone
-
+        phoneInput.value = newPhone;
 
         fetch(endpoint4)
         .then(res => res.text())
         .then(datajson => csv().fromString(datajson))
         .then(data => {
-            for (let i = 0; i < data.length; i++){
-                let arr = data[i].handphone.split(",");
-                
-                for (let j = 0; j < arr.length; j++){
-                    // console.log(arr[j], newPhone.slice(1))
-                    if(arr[j] == newPhone.slice(1)){
-                        // console.log('double:', arr[j], newPhone)
-                        return notRegistered = false
-                    } 
+            currData = new FormData(form);
+            let days = Math.ceil((new Date(chosenDateByCustomer) - new Date()) / (1000 * 60 * 60 * 24));
+            let shift = sessionChosenByCustomer == 'session1' ? 0 : sessionChosenByCustomer == 'session2' ? 1 : 2;
+            let exactDays = days * 3 + shift;
+            
+            let arrPhone = data[exactDays].handphone.split(", ");
+            
+            for (let i = 0; i < arrPhone.length; i++){
+                console.log('cek:', arrPhone[i], newPhone.slice(1))
+                if (arrPhone[i] == newPhone.slice(1)){
+                    // console.log('double:', arrPhone[i], newPhone)
+                            return notRegistered = false
                 }
                 notRegistered = true
             }
-            
         })
         .then(() => {
             if(notRegistered){
@@ -345,6 +360,53 @@ function checkDoublePhone(phone){
         }
         return true
     })
+}
+
+// countdown timer
+
+function countDownTimer(){
+    const textInfo = document.querySelector(".announcement-text")
+    announcementBox.style.display = 'flex';
+    button.setAttribute('disabled', 'disabled');
+    button.value = 'Tidak beroperasi';
+
+    textInfo.innerText = announcementText;
+    // console.log(announcementText, countdownDestination);
+
+    let countDownDate = new Date(countdownDestination).getTime()
+
+    let x = setInterval(function(){
+        let now = new Date().getTime();
+        let distance = countDownDate - now;
+
+        // Time calculations for days, hours, minutes and seconds
+        let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        // Display the result in the element with id="demo"
+        countDown.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+
+        if (distance <= 0){
+            clearInterval(x)
+            countDown.innerHTML = "Expired";
+
+            announcementBox.style.display = 'none';
+            button.removeAttribute('disabled');
+            button.value = 'Submit';
+        }
+    })
+}
+
+function getTodayString(){
+    let mm = new Date().getMonth() + 1; // getMonth() is zero-based
+    let dd = new Date().getDate();
+
+    return [new Date().getFullYear(),
+          (mm>9 ? '' : '0') + mm,
+          (dd>9 ? '' : '0') + dd
+         ].join('-');
 }
 
 
